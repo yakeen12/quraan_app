@@ -1,9 +1,6 @@
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:quraan/resources/images.dart';
 import 'package:quraan/route_generator.dart';
-import 'package:quraan/screens/home_page.dart';
 import 'package:quraan/screens/splash_screen.dart';
 
 void main() {

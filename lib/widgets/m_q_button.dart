@@ -9,6 +9,7 @@ class ChoiceButton extends StatelessWidget {
   final VoidCallback onPressed;
 
   const ChoiceButton({
+    super.key,
     required this.option,
     required this.isSelected,
     required this.onPressed,
@@ -31,10 +32,11 @@ class ChoiceButton extends StatelessWidget {
             image: DecorationImage(
                 opacity: isSelected ? 0.7 : 1,
                 // colorFilter: (selected?? ColorFilter.),
-                image: AssetImage(metalGreen),
+                image: const AssetImage(metalGreen),
                 fit: BoxFit.cover),
             borderRadius: BorderRadius.circular(15),
           ),
+          width: MediaQuery.of(context).size.width,
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Column(
@@ -51,7 +53,6 @@ class ChoiceButton extends StatelessWidget {
               ],
             ),
           ),
-          width: MediaQuery.of(context).size.width,
         ),
       ),
     );

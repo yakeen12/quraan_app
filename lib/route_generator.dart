@@ -1,22 +1,20 @@
-import 'dart:ffi';
 
 import 'package:flutter/material.dart';
 import 'package:quraan/screens/home_page.dart';
 import 'package:quraan/screens/quiz_screen.dart';
-import 'package:quraan/views/multi_q_view.dart';
 
 class RouteGenerator {
   static Route<dynamic> generateRoute(RouteSettings settings) {
-    final args = settings.arguments;
+    // final args = settings.arguments;
 
     switch (settings.name) {
       case '/':
         return MaterialPageRoute(
-          builder: (_) => HomePage(),
+          builder: (_) => const HomePage(),
         );
       case '/home':
         return MaterialPageRoute(
-          builder: (_) => HomePage(),
+          builder: (_) => const HomePage(),
         );
       case '/quiz':
         String args = settings.arguments.toString();

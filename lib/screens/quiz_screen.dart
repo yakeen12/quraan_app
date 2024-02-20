@@ -7,11 +7,10 @@ import 'package:flutter_glow/flutter_glow.dart';
 import 'package:quraan/resources/images.dart';
 import 'package:quraan/utils/colors.dart';
 import 'package:quraan/views/multi_q_view.dart';
-import 'package:quraan/widgets/m_q_button.dart';
 
 class QuizPage extends StatefulWidget {
   final int level;
-  const QuizPage({required this.level});
+  const QuizPage({super.key, required this.level});
 
   @override
   State<QuizPage> createState() => _QuizPageState();
@@ -83,7 +82,7 @@ class _QuizPageState extends State<QuizPage> {
             : '';
 
     AudioPlayer().play(
-      position: Duration(milliseconds: 350),
+      position: const Duration(milliseconds: 350),
       AssetSource(
         result == '!إجابة صحيحة' ? 'correct.mp3' : 'wrong.mp3',
       ),
@@ -94,8 +93,8 @@ class _QuizPageState extends State<QuizPage> {
       context: context,
       builder: (BuildContext context) {
         return Container(
-          color: Color.fromARGB(205, 0, 0, 0),
-          padding: EdgeInsets.fromLTRB(16, 20, 16, 10),
+          color: const Color.fromARGB(205, 0, 0, 0),
+          padding: const EdgeInsets.fromLTRB(16, 20, 16, 10),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -111,7 +110,7 @@ class _QuizPageState extends State<QuizPage> {
                             : Colors.green,
                         fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     width: 20,
                   ),
                   Icon(
@@ -125,7 +124,7 @@ class _QuizPageState extends State<QuizPage> {
                   ),
                 ],
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               if (correctAnswerText.isNotEmpty)
                 SizedBox(
                   width: MediaQuery.of(context).size.width,
@@ -134,17 +133,17 @@ class _QuizPageState extends State<QuizPage> {
                     children: [
                       Text(
                         correctAnswerText,
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 20.0,
                             color: Colors.red,
                             fontWeight: FontWeight.bold),
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 5,
                       ),
                       Text(
                         _MultiQuestions[currentPageIndex].rightAnswer!,
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 16.0,
                             color: Colors.red,
                             fontWeight: FontWeight.bold),
@@ -152,21 +151,21 @@ class _QuizPageState extends State<QuizPage> {
                     ],
                   ),
                 ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               SizedBox(
                 width: MediaQuery.of(context).size.width,
                 child: ElevatedButton(
                   onPressed: () {
                     if (currentPageIndex < _MultiQuestions.length - 1) {
                       _pageController.nextPage(
-                        duration: Duration(milliseconds: 500),
+                        duration: const Duration(milliseconds: 500),
                         curve: Curves.ease,
                       );
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(vertical: 14.0),
-                    primary:
+                    padding: const EdgeInsets.symmetric(vertical: 14.0),
+                    backgroundColor:
                         result == '!إجابة صحيحة' ? Colors.green : Colors.red,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
@@ -184,7 +183,7 @@ class _QuizPageState extends State<QuizPage> {
                   ),
                   child: Text(
                     correctAnswerText.isNotEmpty ? 'فهمت' : 'أكمل',
-                    style: TextStyle(
+                    style: const TextStyle(
                         color: Colors.black,
                         fontSize: 20,
                         fontWeight: FontWeight.bold),
@@ -210,7 +209,7 @@ class _QuizPageState extends State<QuizPage> {
               centerTitle: true,
               title: GlowText(
                 'سؤال ${currentPageIndex + 1} من ${_MultiQuestions.length}',
-                style: TextStyle(color: primaryColor1),
+                style: const TextStyle(color: primaryColor1),
               ),
               flexibleSpace: Container(
                 decoration: const BoxDecoration(
@@ -231,7 +230,7 @@ class _QuizPageState extends State<QuizPage> {
                       child: PageView.builder(
                         controller: _pageController,
                         itemCount: _MultiQuestionsViews.length,
-                        physics: NeverScrollableScrollPhysics(),
+                        physics: const NeverScrollableScrollPhysics(),
                         onPageChanged: (index) {
                           setState(() {
                             currentPageIndex = index;
@@ -265,14 +264,15 @@ class _QuizPageState extends State<QuizPage> {
                                       image: DecorationImage(
                                         image: _MultiQuestions[currentPageIndex]
                                                 .isButtonPressable
-                                            ? AssetImage(metalGreen)
-                                            : AssetImage(nullColor),
+                                            ? const AssetImage(metalGreen)
+                                            : const AssetImage(nullColor),
                                         fit: BoxFit.cover,
                                       ),
                                       borderRadius: BorderRadius.circular(15),
                                     ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
+                                    width: MediaQuery.of(context).size.width,
+                                    child: const Padding(
+                                      padding: EdgeInsets.all(8.0),
                                       child: Column(
                                         mainAxisAlignment:
                                             MainAxisAlignment.center,
@@ -281,7 +281,7 @@ class _QuizPageState extends State<QuizPage> {
                                         children: [
                                           GlowText(
                                             "تحقق",
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                                 fontSize: 20,
                                                 color: (primaryColor1),
                                                 fontWeight: FontWeight.bold),
@@ -289,7 +289,6 @@ class _QuizPageState extends State<QuizPage> {
                                         ],
                                       ),
                                     ),
-                                    width: MediaQuery.of(context).size.width,
                                   ),
                                 ),
                               ),

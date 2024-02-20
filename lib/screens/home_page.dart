@@ -77,7 +77,7 @@ class _HomePageState extends State<HomePage> {
                     5,
                     (index) => InkWell(
                           onTap: () {
-                            Get.toNamed('/multiple_q', arguments: 2);
+                            Get.toNamed('/quiz', arguments: 2);
                           },
                           child: Container(
                             margin: const EdgeInsets.symmetric(vertical: 5),

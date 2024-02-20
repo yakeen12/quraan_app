@@ -2,6 +2,7 @@ import 'dart:ffi';
 
 import 'package:flutter/material.dart';
 import 'package:quraan/screens/home_page.dart';
+import 'package:quraan/screens/quiz_screen.dart';
 import 'package:quraan/views/multi_q_view.dart';
 
 class RouteGenerator {
@@ -17,10 +18,10 @@ class RouteGenerator {
         return MaterialPageRoute(
           builder: (_) => HomePage(),
         );
-      case '/multiple_q':
+      case '/quiz':
         String args = settings.arguments.toString();
         return MaterialPageRoute(
-          builder: (_) => Multi_q(
+          builder: (_) => QuizPage(
             level: int.parse(args),
           ),
         );

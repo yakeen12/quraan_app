@@ -4,6 +4,8 @@ class MultiQuestion {
   final List<String>? choices;
   final String? rightAnswer;
   final int? level;
+  String selectedOption = '';
+  bool isButtonPressable = false;
 
   MultiQuestion(
       {required this.id,

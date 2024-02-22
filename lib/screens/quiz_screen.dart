@@ -1,12 +1,16 @@
 import 'package:get/get.dart';
+import 'package:quraan/models/match_q_model.dart';
 import 'package:quraan/models/multi_q_model.dart';
+import 'package:quraan/services/match_q_services.dart';
 import 'package:quraan/services/multi_q_services.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_glow/flutter_glow.dart';
 import 'package:quraan/resources/images.dart';
 import 'package:quraan/utils/colors.dart';
+import 'package:quraan/views/match_q_view.dart';
 import 'package:quraan/views/multi_q_view.dart';
+import 'package:quraan/widgets/customScaffold.dart';
 
 class QuizPage extends StatefulWidget {
   final int level;
@@ -22,19 +26,40 @@ class _QuizPageState extends State<QuizPage> {
   int score = 0;
 
   List<MultiQuestion> _MultiQuestions = [];
+  List<MatchQuestion> _MatchQuestions = [];
 
   List<Multi_q_view> _MultiQuestionsViews = [];
+  List<MatchQView> _MatchQuestionsViews = [];
+
+  List qs = [];
+
   @override
   void initState() {
     super.initState();
-    print("level : ${widget.level}");
-    _fetchMultiQuestions();
     _pageController = PageController();
+    getData();
+    print("level : ${widget.level}");
+  }
+
+  getData() async {
+    await _fetchMultiQuestions();
+    await _fetchMatchQuestions();
+    qs.shuffle();
+    print("init:");
+    print("multi ${_MultiQuestions.toString()}");
+    print(qs.toString());
+
+    qs.forEach((element) {
+      printError(info: "element: $element, DataType: ${element.runtimeType}");
+    });
+    setState(() {});
   }
 
   void updateChoice(String option) {
-    _MultiQuestions[currentPageIndex].selectedOption = option;
-    _MultiQuestions[currentPageIndex].isButtonPressable = true;
+    if (qs[currentPageIndex].runtimeType == Multi_q_view) {
+      qs[currentPageIndex].question!.selectedOption = option;
+    }
+    qs[currentPageIndex].question.isButtonPressable = true;
     setState(() {});
   }
 
@@ -48,14 +73,28 @@ class _QuizPageState extends State<QuizPage> {
     try {
       final questions =
           await MultiQuestionService.fetchQuestionsByLevel(widget.level);
-      setState(() {
-        _MultiQuestions = questions;
-      });
+
+      _MultiQuestions = questions;
 
       fillMultiQList(_MultiQuestions);
     } catch (e) {
       print('Error fetching questions: $e');
     }
+  }
+
+  Future<void> _fetchMatchQuestions() async {
+    try {
+      final matchQuestions =
+          await MatchQuestionService.fetchQuestionsByLevel(widget.level);
+
+      _MatchQuestions = matchQuestions;
+
+      fillMatchQList(_MatchQuestions);
+    } catch (e) {
+      print('Error fetching questions: $e');
+    }
+    printError(info: "match ${_MatchQuestions.toString()}");
+    print("qs.length = ${qs.length}");
   }
 
   fillMultiQList(List<MultiQuestion> _multiQuestions) {
@@ -65,21 +104,42 @@ class _QuizPageState extends State<QuizPage> {
         question: element,
       ));
     });
+
+    qs.addAll(_MultiQuestionsViews.toList());
+    print("qs.length = ${qs.length}");
+  }
+
+  fillMatchQList(List<MatchQuestion> _matchQuestions) {
+    _MatchQuestions.forEach((element) {
+      _MatchQuestionsViews.add(MatchQView(
+        updateChoice: updateChoice,
+        question: element,
+      ));
+    });
+
+    qs.addAll(_MatchQuestionsViews);
+
+    print("qs.length = ${qs.length}");
   }
 
   void checkAnswer(BuildContext context) {
     // check result
-    String result = _MultiQuestions[currentPageIndex].selectedOption ==
-            _MultiQuestions[currentPageIndex].rightAnswer
-        ? '!إجابة صحيحة'
-        : 'إجابة خاطئة';
+    String result;
+    String correctAnswerText = "";
 
-    printError(info: _MultiQuestions[currentPageIndex].selectedOption);
-    String correctAnswerText =
-        _MultiQuestions[currentPageIndex].selectedOption !=
-                _MultiQuestions[currentPageIndex].rightAnswer
-            ? ':الإجابة الصحيحة هي'
-            : '';
+    if (qs[currentPageIndex].runtimeType == Multi_q_view) {
+      result = qs[currentPageIndex].question.selectedOption ==
+              qs[currentPageIndex].question.rightAnswer
+          ? '!إجابة صحيحة'
+          : 'إجابة خاطئة';
+      correctAnswerText = qs[currentPageIndex].question.selectedOption !=
+              qs[currentPageIndex].question.rightAnswer
+          ? ':الإجابة الصحيحة هي'
+          : '';
+      printError(info: qs[currentPageIndex].question.selectedOption);
+    } else {
+      result = '!إجابة صحيحة';
+    }
 
     AudioPlayer().play(
       position: const Duration(milliseconds: 350),
@@ -90,6 +150,7 @@ class _QuizPageState extends State<QuizPage> {
 
     // show modal
     showModalBottomSheet(
+      isDismissible: false,
       context: context,
       builder: (BuildContext context) {
         return Container(
@@ -142,7 +203,7 @@ class _QuizPageState extends State<QuizPage> {
                         height: 5,
                       ),
                       Text(
-                        _MultiQuestions[currentPageIndex].rightAnswer!,
+                        qs[currentPageIndex].question.rightAnswer!,
                         style: const TextStyle(
                             fontSize: 16.0,
                             color: Colors.red,
@@ -156,7 +217,8 @@ class _QuizPageState extends State<QuizPage> {
                 width: MediaQuery.of(context).size.width,
                 child: ElevatedButton(
                   onPressed: () {
-                    if (currentPageIndex < _MultiQuestions.length - 1) {
+                    navigator!.pop(context);
+                    if (currentPageIndex < qs.length - 1) {
                       _pageController.nextPage(
                         duration: const Duration(milliseconds: 500),
                         curve: Curves.ease,
@@ -199,150 +261,110 @@ class _QuizPageState extends State<QuizPage> {
 
   @override
   Widget build(BuildContext context) {
-    return _MultiQuestions.isEmpty
-        ? const Center(
-            child: CircularProgressIndicator(),
-          )
-        : Scaffold(
+    return qs.isEmpty
+        ? Scaffold(
             backgroundColor: Colors.transparent,
-            appBar: AppBar(
-              centerTitle: true,
-              title: GlowText(
-                'سؤال ${currentPageIndex + 1} من ${_MultiQuestions.length}',
-                style: const TextStyle(color: primaryColor1),
-              ),
-              flexibleSpace: Container(
-                decoration: const BoxDecoration(
-                    image: DecorationImage(
-                        image: AssetImage(metalGreen), fit: BoxFit.fill)),
-              ),
-            ),
-            body: Center(
-              child: Container(
-                decoration: const BoxDecoration(
-                    image: DecorationImage(
-                        image: AssetImage(goldBg), fit: BoxFit.fill)),
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(children: [
-                    SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.864,
-                      child: PageView.builder(
-                        controller: _pageController,
-                        itemCount: _MultiQuestionsViews.length,
-                        physics: const NeverScrollableScrollPhysics(),
-                        onPageChanged: (index) {
-                          setState(() {
-                            currentPageIndex = index;
-                          });
-                        },
-                        itemBuilder: (context, index) {
-                          return Column(
-                            children: [
-                              SizedBox(
-                                  height: MediaQuery.of(context).size.height *
-                                      0.724,
-                                  child: _MultiQuestionsViews[index]),
-                              InkWell(
-                                onTap: _MultiQuestions[currentPageIndex]
-                                        .selectedOption
-                                        .isEmpty
-                                    ? null
-                                    : () => checkAnswer(context),
-                                child: Container(
-                                  margin:
-                                      const EdgeInsets.symmetric(vertical: 15),
-                                  height:
-                                      MediaQuery.of(context).size.height * 0.1,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(15),
-                                    color: Colors.transparent,
-                                  ),
-                                  child: Container(
-                                    height: 100,
-                                    decoration: BoxDecoration(
-                                      image: DecorationImage(
-                                        image: _MultiQuestions[currentPageIndex]
-                                                .isButtonPressable
-                                            ? const AssetImage(metalGreen)
-                                            : const AssetImage(nullColor),
-                                        fit: BoxFit.cover,
-                                      ),
-                                      borderRadius: BorderRadius.circular(15),
-                                    ),
-                                    width: MediaQuery.of(context).size.width,
-                                    child: const Padding(
-                                      padding: EdgeInsets.all(8.0),
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        children: [
-                                          GlowText(
-                                            "تحقق",
-                                            style: TextStyle(
-                                                fontSize: 20,
-                                                color: (primaryColor1),
-                                                fontWeight: FontWeight.bold),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          );
-                        },
-                      ),
+            body: Container(
+              height: MediaQuery.of(context).size.height,
+              width: MediaQuery.of(context).size.width,
+              decoration: const BoxDecoration(
+                  image: DecorationImage(
+                      image: AssetImage(goldBg), fit: BoxFit.fill)),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "جاري احضار الاسئلة",
+                      style: TextStyle(
+                          color: Colors.green[900],
+                          fontWeight: FontWeight.bold,
+                          fontSize: 25),
                     ),
-
-                    // SizedBox(
-                    //   width: MediaQuery.of(context).size.width,
-                    //   child: ElevatedButton(
-                    //     onPressed: () {
-                    //       Navigator.pop(context);
-                    //       if (currentPageIndex < _MultiQuestions.length - 1) {
-                    //         _pageController.nextPage(
-                    //           duration: Duration(milliseconds: 500),
-                    //           curve: Curves.ease,
-                    //         );
-                    //       }
-                    //     },
-                    //     style: ElevatedButton.styleFrom(
-                    //       padding: EdgeInsets.symmetric(vertical: 14.0),
-                    //       primary: Colors.green,
-                    //       elevation: 0,
-                    //       shape: RoundedRectangleBorder(
-                    //         borderRadius: BorderRadius.circular(8.0),
-                    //       ),
-                    //     ),
-                    //     child: Text(
-                    //       'أكمل',
-                    //       style: TextStyle(
-                    //           color: Colors.black,
-                    //           fontSize: 20,
-                    //           fontWeight: FontWeight.bold),
-                    //     ),
-                    //   ),
-                    // ),
-                  ]),
-
-                  // floatingActionButton: FloatingActionButton(
-                  //   onPressed: () {
-                  //     if (currentPageIndex < widget.questions.length - 1) {
-                  //       _pageController.nextPage(
-                  //         duration: Duration(milliseconds: 500),
-                  //         curve: Curves.ease,
-                  //       );
-                  //     }
-                  //   },
-                  //   child: Icon(Icons.arrow_forward),
-                  // ), // here we add the q object
+                    const SizedBox(
+                      height: 15,
+                    ),
+                    CircularProgressIndicator(
+                      color: Colors.green[900],
+                    ),
+                  ],
                 ),
               ),
             ),
+          )
+        : CustomScaffold(
+            title: 'سؤال ${currentPageIndex + 1} من ${qs.length}',
+            body: Column(children: [
+              SizedBox(
+                height: MediaQuery.of(context).size.height * 0.864,
+                child: PageView.builder(
+                  controller: _pageController,
+                  itemCount: qs.length,
+                  physics: const NeverScrollableScrollPhysics(),
+                  onPageChanged: (index) {
+                    printInfo(info: "${qs[currentPageIndex].runtimeType}");
+                    setState(() {
+                      currentPageIndex = index;
+                    });
+                  },
+                  itemBuilder: (context, index) {
+                    return Column(
+                      children: [
+                        SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.724,
+                            child: qs[index]),
+                        InkWell(
+                          onTap: () {
+                            qs[currentPageIndex].question.isButtonPressable
+                                ? checkAnswer(context)
+                                : null;
+                          },
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(vertical: 15),
+                            height: MediaQuery.of(context).size.height * 0.1,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(15),
+                              color: Colors.transparent,
+                            ),
+                            child: Container(
+                              height: 100,
+                              decoration: BoxDecoration(
+                                image: DecorationImage(
+                                  image: qs[currentPageIndex]
+                                          .question
+                                          .isButtonPressable
+                                      ? const AssetImage(metalGreen)
+                                      : const AssetImage(nullColor),
+                                  fit: BoxFit.cover,
+                                ),
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              width: MediaQuery.of(context).size.width,
+                              child: const Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    GlowText(
+                                      "تحقق",
+                                      style: TextStyle(
+                                          fontSize: 20,
+                                          color: (primaryColor1),
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ]),
           );
   }
 }

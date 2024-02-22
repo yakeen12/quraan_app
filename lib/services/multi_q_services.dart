@@ -4,7 +4,8 @@ import 'dart:convert';
 import 'package:quraan/models/multi_q_model.dart';
 
 class MultiQuestionService {
-  static const baseUrl = 'http://192.168.0.166:3000/api/questions/';
+  static const baseUrl =
+      'http://192.168.0.165:3000/api/multiplechoicequestion/';
 
   static Future<List<MultiQuestion>> fetchQuestionsByLevel(int level) async {
     final response = await http.get(Uri.parse('$baseUrl$level'));

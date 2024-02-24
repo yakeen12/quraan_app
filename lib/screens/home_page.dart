@@ -24,6 +24,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return CustomScaffold(
+      showExit: false,
       title: "إقرأ باسم ربّك",
       body: Column(
         children: [
@@ -53,8 +54,6 @@ class _HomePageState extends State<HomePage> {
               (index) => InkWell(
                     onTap: () {
                       Get.toNamed('/quiz', arguments: index + 1);
-                      print("to quiz");
-                      // () => Get.to(const MatchQView());
                     },
                     child: Container(
                       margin: const EdgeInsets.symmetric(vertical: 5),

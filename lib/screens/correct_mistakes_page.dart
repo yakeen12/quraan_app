@@ -1,65 +1,59 @@
-import 'package:get/get.dart';
-import 'package:quraan/models/match_q_model.dart';
-import 'package:quraan/models/multi_q_model.dart';
-import 'package:quraan/screens/correct_mistakes_page.dart';
-import 'package:quraan/services/match_q_services.dart';
-import 'package:quraan/services/multi_q_services.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_glow/flutter_glow.dart';
+import 'package:get/get.dart';
 import 'package:quraan/resources/images.dart';
+import 'package:quraan/screens/quiz_screen.dart';
 import 'package:quraan/utils/colors.dart';
 import 'package:quraan/views/match_q_view.dart';
 import 'package:quraan/views/multi_q_view.dart';
 import 'package:quraan/widgets/customScaffold.dart';
 
-class QuizPage extends StatefulWidget {
-  final int level;
-  const QuizPage({super.key, required this.level});
+class CorrectMistakes extends StatefulWidget {
+  const CorrectMistakes({
+    required this.questions,
+    required this.quizLength,
+    super.key,
+  });
+  final List<dynamic> questions;
+  final int quizLength;
 
   @override
-  State<QuizPage> createState() => QuizPageState();
+  State<CorrectMistakes> createState() => _CorrectMistakesState();
 }
 
-class QuizPageState extends State<QuizPage> {
+class _CorrectMistakesState extends State<CorrectMistakes> {
   late PageController _pageController;
   int currentPageIndex = 0;
-  int score = 0;
 
-  List<MultiQuestion> _MultiQuestions = [];
-  List<MatchQuestion> _MatchQuestions = [];
-
-  List<Multi_q_view> _MultiQuestionsViews = [];
-  List<MatchQView> _MatchQuestionsViews = [];
-
-  List qs = [];
+  List<dynamic> _questions = [];
 
   @override
   void initState() {
     super.initState();
+    updateQuestionsUpdateChoice();
     _pageController = PageController();
-    getData();
   }
 
-  getData() async {
-    await _fetchMultiQuestions();
-    await _fetchMatchQuestions();
-    qs.shuffle();
-    print("init:");
-    print("multi ${_MultiQuestions.toString()}");
-    print(qs.toString());
-
-    qs.forEach((element) {
-      printError(info: "element: $element, DataType: ${element.runtimeType}");
+  updateQuestionsUpdateChoice() {
+    widget.questions.forEach((element) {
+      if (element.runtimeType == Multi_q_view) {
+        _questions.add(Multi_q_view(
+          question: element.question,
+          updateChoice: updateChoice,
+        ));
+      } else {
+        _questions.add(
+            MatchQView(question: element.question, updateChoice: updateChoice));
+      }
     });
-    setState(() {});
   }
 
   void updateChoice(String option) {
-    if (qs[currentPageIndex].runtimeType == Multi_q_view) {
-      qs[currentPageIndex].question!.selectedOption = option;
+    if (_questions[currentPageIndex].runtimeType == Multi_q_view) {
+      _questions[currentPageIndex].question!.selectedOption = option;
     }
-    qs[currentPageIndex].question.isButtonPressable = true;
+    _questions[currentPageIndex].question.isButtonPressable = true;
     setState(() {});
   }
 
@@ -69,81 +63,25 @@ class QuizPageState extends State<QuizPage> {
     super.dispose();
   }
 
-  Future<void> _fetchMultiQuestions() async {
-    try {
-      final questions =
-          await MultiQuestionService.fetchQuestionsByLevel(widget.level);
-
-      _MultiQuestions = questions;
-
-      fillMultiQList(_MultiQuestions);
-    } catch (e) {
-      print('Error fetching questions: $e');
-    }
-  }
-
-  Future<void> _fetchMatchQuestions() async {
-    try {
-      final matchQuestions =
-          await MatchQuestionService.fetchQuestionsByLevel(widget.level);
-
-      _MatchQuestions = matchQuestions;
-
-      fillMatchQList(_MatchQuestions);
-    } catch (e) {
-      print('Error fetching questions: $e');
-    }
-  }
-
-  fillMultiQList(List<MultiQuestion> _multiQuestions) {
-    _MultiQuestions.forEach((element) {
-      _MultiQuestionsViews.add(Multi_q_view(
-        updateChoice: updateChoice,
-        question: element,
-      ));
-    });
-
-    qs.addAll(_MultiQuestionsViews.toList());
-  }
-
-  fillMatchQList(List<MatchQuestion> _matchQuestions) {
-    _MatchQuestions.forEach((element) {
-      _MatchQuestionsViews.add(MatchQView(
-        updateChoice: updateChoice,
-        question: element,
-      ));
-    });
-
-    qs.addAll(_MatchQuestionsViews);
-  }
-
-  // List of wrong answers to show at the end
-  List<dynamic> wrongAnswers = [];
-
   void checkAnswer(BuildContext context) {
     // check result
     String result;
     String correctAnswerText = "";
 
-    if (qs[currentPageIndex].runtimeType == Multi_q_view) {
-      result = qs[currentPageIndex].question.selectedOption ==
-              qs[currentPageIndex].question.rightAnswer
+    if (_questions[currentPageIndex].runtimeType == Multi_q_view) {
+      result = _questions[currentPageIndex].question.selectedOption ==
+              _questions[currentPageIndex].question.rightAnswer
           ? '!إجابة صحيحة'
           : 'إجابة خاطئة';
-      correctAnswerText = qs[currentPageIndex].question.selectedOption !=
-              qs[currentPageIndex].question.rightAnswer
-          ? ':الإجابة الصحيحة هي'
-          : '';
-      if (result == 'إجابة خاطئة') {
-        printError(info: qs[currentPageIndex].question.selectedOption);
-        qs[currentPageIndex].question.isButtonPressable = false;
-        qs[currentPageIndex].question.selectedOption = "";
-
-        wrongAnswers.add(qs[currentPageIndex]);
-      }
+      correctAnswerText =
+          _questions[currentPageIndex].question.selectedOption !=
+                  _questions[currentPageIndex].question.rightAnswer
+              ? ':الإجابة الصحيحة هي'
+              : '';
+      printError(info: _questions[currentPageIndex].question.selectedOption);
+      printError(info: "quizLength = ${widget.quizLength}");
     } else {
       result = '!إجابة صحيحة';
-      score++;
     }
 
     AudioPlayer().play(
@@ -208,7 +146,7 @@ class QuizPageState extends State<QuizPage> {
                         height: 5,
                       ),
                       Text(
-                        qs[currentPageIndex].question.rightAnswer!,
+                        _questions[currentPageIndex].question.rightAnswer!,
                         style: const TextStyle(
                             fontSize: 16.0,
                             color: Colors.red,
@@ -223,29 +161,19 @@ class QuizPageState extends State<QuizPage> {
                 child: ElevatedButton(
                   onPressed: () {
                     navigator!.pop(context);
-                    if (currentPageIndex < qs.length - 1) {
+                    if (currentPageIndex < _questions.length - 1) {
                       _pageController.nextPage(
                         duration: const Duration(milliseconds: 500),
                         curve: Curves.ease,
                       );
                     } else {
-                      if (wrongAnswers.length > 0) {
-                        Get.toNamed(
-                          '/correctMistakes',
-                          arguments: {
-                            'wrongAnswers': wrongAnswers,
-                            'quizLength': qs.length
-                          },
-                        );
-                      } else {
-                        Get.offAndToNamed(
-                          '/score',
-                          arguments: {
-                            'quizLength': qs.length,
-                            'wrongLength': wrongAnswers.length
-                          },
-                        );
-                      }
+                      Get.toNamed(
+                        '/score',
+                        arguments: {
+                          'quizLength': widget.quizLength,
+                          'wrongLength': _questions.length
+                        },
+                      );
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -275,7 +203,7 @@ class QuizPageState extends State<QuizPage> {
 
   @override
   Widget build(BuildContext context) {
-    return qs.isEmpty
+    return _questions.isEmpty
         ? Scaffold(
             backgroundColor: Colors.transparent,
             body: Container(
@@ -308,17 +236,21 @@ class QuizPageState extends State<QuizPage> {
           )
         : CustomScaffold(
             showExit: true,
-            title: 'سؤال ${currentPageIndex + 1} من ${qs.length}',
+            title: "مراجعة الأخطاء",
             body: Column(children: [
               SizedBox(
                 height: MediaQuery.of(context).size.height * 0.864,
                 child: PageView.builder(
                   controller: _pageController,
-                  itemCount: qs.length,
+                  itemCount: _questions.length,
                   physics: const NeverScrollableScrollPhysics(),
                   onPageChanged: (index) {
-                    printInfo(info: "${qs[currentPageIndex].runtimeType}");
+                    printInfo(
+                        info: "${_questions[currentPageIndex].runtimeType}");
                     setState(() {
+                      printError(info: "${QuizPageState().score}");
+                      printError(info: "${QuizPageState().qs.length}");
+
                       currentPageIndex = index;
                     });
                   },
@@ -327,10 +259,12 @@ class QuizPageState extends State<QuizPage> {
                       children: [
                         SizedBox(
                             height: MediaQuery.of(context).size.height * 0.724,
-                            child: qs[index]),
+                            child: _questions[index]),
                         InkWell(
                           onTap: () {
-                            qs[currentPageIndex].question.isButtonPressable
+                            _questions[currentPageIndex]
+                                    .question
+                                    .isButtonPressable
                                 ? checkAnswer(context)
                                 : null;
                           },
@@ -345,7 +279,7 @@ class QuizPageState extends State<QuizPage> {
                               height: 100,
                               decoration: BoxDecoration(
                                 image: DecorationImage(
-                                  image: qs[currentPageIndex]
+                                  image: _questions[currentPageIndex]
                                           .question
                                           .isButtonPressable
                                       ? const AssetImage(metalGreen)

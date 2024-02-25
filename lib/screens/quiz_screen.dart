@@ -24,7 +24,6 @@ class QuizPage extends StatefulWidget {
 class QuizPageState extends State<QuizPage> {
   late PageController _pageController;
   int currentPageIndex = 0;
-  int score = 0;
 
   List<MultiQuestion> _MultiQuestions = [];
   List<MatchQuestion> _MatchQuestions = [];
@@ -45,9 +44,6 @@ class QuizPageState extends State<QuizPage> {
     await _fetchMultiQuestions();
     await _fetchMatchQuestions();
     qs.shuffle();
-    print("init:");
-    print("multi ${_MultiQuestions.toString()}");
-    print(qs.toString());
 
     qs.forEach((element) {
       printError(info: "element: $element, DataType: ${element.runtimeType}");
@@ -143,11 +139,10 @@ class QuizPageState extends State<QuizPage> {
       }
     } else {
       result = '!إجابة صحيحة';
-      score++;
     }
 
     AudioPlayer().play(
-      position: const Duration(milliseconds: 350),
+      position: const Duration(milliseconds: 300),
       AssetSource(
         result == '!إجابة صحيحة' ? 'correct.mp3' : 'wrong.mp3',
       ),

@@ -5,6 +5,8 @@ import 'package:quraan/models/match_q_model.dart';
 import 'package:quraan/resources/images.dart';
 import 'package:quraan/utils/colors.dart';
 import 'package:quraan/widgets/CustomRadioButton.dart';
+import 'package:audioplayers/audioplayers.dart';
+import 'package:vibration/vibration.dart';
 
 class MatchQView extends StatefulWidget {
   final MatchQuestion question;
@@ -23,15 +25,6 @@ class _MatchQViewState extends State<MatchQView> {
 
   var col1Val = "";
   var col2Val = "";
-
-  // counter to col1 col2 counterall
-  // counter all = 1
-  // counter col1 col2 = 0
-  // when radio chosen counter of it's col ++
-  // if col1 col2 counters == counter all
-  // check.
-  // until counter all  = col.length + 1
-  //do update choice
 
   int counter1 = 0;
   int counter2 = 0;
@@ -153,7 +146,7 @@ class _MatchQViewState extends State<MatchQView> {
     );
   }
 
-  check() {
+  check() async {
     if ((counter1 == counter2)) {
       {
         if (counter1 == counterAll) {
@@ -164,8 +157,12 @@ class _MatchQViewState extends State<MatchQView> {
             col1Val = "";
             col2Val = "";
             counterAll++;
-            printError(info: "$counterAll");
-            printError(info: "${col1.length}");
+            AudioPlayer().play(
+              position: const Duration(milliseconds: 300),
+              AssetSource(
+                'correct.mp3',
+              ),
+            );
 
             if (counterAll > col1.length) {
               printError(info: "updated");
@@ -175,6 +172,16 @@ class _MatchQViewState extends State<MatchQView> {
             }
           } else {
             printError(info: "Wrong :(((())))");
+            // Vibrate the device when the answer is wrong
+            if (await Vibration.hasVibrator() ?? false) {
+              Vibration.vibrate(duration: 500); // Vibrate for 500 milliseconds
+            }
+            AudioPlayer().play(
+              position: const Duration(milliseconds: 300),
+              AssetSource(
+                'wrong.mp3',
+              ),
+            );
           }
         }
       }

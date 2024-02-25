@@ -248,9 +248,6 @@ class _CorrectMistakesState extends State<CorrectMistakes> {
                     printInfo(
                         info: "${_questions[currentPageIndex].runtimeType}");
                     setState(() {
-                      printError(info: "${QuizPageState().score}");
-                      printError(info: "${QuizPageState().qs.length}");
-
                       currentPageIndex = index;
                     });
                   },

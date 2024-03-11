@@ -1,7 +1,6 @@
 import 'package:get/get.dart';
 import 'package:quraan/models/match_q_model.dart';
 import 'package:quraan/models/multi_q_model.dart';
-import 'package:quraan/screens/correct_mistakes_page.dart';
 import 'package:quraan/services/match_q_services.dart';
 import 'package:quraan/services/multi_q_services.dart';
 import 'package:audioplayers/audioplayers.dart';
@@ -225,7 +224,7 @@ class QuizPageState extends State<QuizPage> {
                       );
                     } else {
                       if (wrongAnswers.length > 0) {
-                        Get.toNamed(
+                        Get.offAndToNamed(
                           '/correctMistakes',
                           arguments: {
                             'wrongAnswers': wrongAnswers,

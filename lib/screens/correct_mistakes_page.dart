@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_glow/flutter_glow.dart';
 import 'package:get/get.dart';
 import 'package:quraan/resources/images.dart';
-import 'package:quraan/screens/quiz_screen.dart';
 import 'package:quraan/utils/colors.dart';
 import 'package:quraan/views/match_q_view.dart';
 import 'package:quraan/views/multi_q_view.dart';
@@ -25,6 +24,7 @@ class CorrectMistakes extends StatefulWidget {
 class _CorrectMistakesState extends State<CorrectMistakes> {
   late PageController _pageController;
   int currentPageIndex = 0;
+  bool splash = true;
 
   List<dynamic> _questions = [];
 
@@ -33,6 +33,11 @@ class _CorrectMistakesState extends State<CorrectMistakes> {
     super.initState();
     updateQuestionsUpdateChoice();
     _pageController = PageController();
+
+    Future.delayed(Duration(seconds: 2), () {
+      splash = false;
+      setState(() {});
+    });
   }
 
   updateQuestionsUpdateChoice() {
@@ -203,7 +208,7 @@ class _CorrectMistakesState extends State<CorrectMistakes> {
 
   @override
   Widget build(BuildContext context) {
-    return _questions.isEmpty
+    return splash
         ? Scaffold(
             backgroundColor: Colors.transparent,
             body: Container(
@@ -217,17 +222,21 @@ class _CorrectMistakesState extends State<CorrectMistakes> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      "جاري احضار الاسئلة",
+                      "مراجعة الاجابات الخاطئة",
                       style: TextStyle(
                           color: Colors.green[900],
                           fontWeight: FontWeight.bold,
-                          fontSize: 25),
+                          fontSize: 30),
                     ),
                     const SizedBox(
                       height: 15,
                     ),
-                    CircularProgressIndicator(
-                      color: Colors.green[900],
+                    Text(
+                      "لن يتم احتساب المراجعة في النتيجة",
+                      style: TextStyle(
+                          color: Colors.green[900],
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20),
                     ),
                   ],
                 ),
